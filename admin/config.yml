@@ -1,5 +1,5 @@
 backend:
-  name: github
+  name: git-gateway
   repo: claudioagustinbrunello-ui/smokk-web
   branch: main
   # Configurá OAuth para Decap CMS/GitHub antes de usar el panel en producción.
