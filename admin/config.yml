@@ -1,0 +1,47 @@
+backend:
+  name: github
+  repo: TU-USUARIO/TU-REPOSITORIO
+  branch: main
+  # Configurá OAuth para Decap CMS/GitHub antes de usar el panel en producción.
+
+media_folder: "material/subidas"
+public_folder: "material/subidas"
+
+locale: "es"
+
+publish_mode: editorial_workflow
+
+collections:
+  - name: "configuracion"
+    label: "Configuración del sitio"
+    files:
+      - name: "general"
+        label: "Redes, contacto y video permanente"
+        file: "content/site.json"
+        format: "json"
+        fields:
+          - { label: "Nombre artístico", name: "nombre", widget: "string", default: "SMOKK" }
+          - { label: "YouTube", name: "youtube", widget: "string", required: false }
+          - { label: "Spotify", name: "spotify", widget: "string", required: false }
+          - { label: "Instagram", name: "instagram", widget: "string", required: false }
+          - { label: "Teléfono o contacto", name: "telefono", widget: "string", required: false }
+          - { label: "Video permanente de YouTube (URL)", name: "videoPermanente", widget: "string", required: false }
+
+  - name: "lanzamientos"
+    label: "Lanzamientos"
+    files:
+      - name: "lista"
+        label: "Lanzamientos y estrenos"
+        file: "content/lanzamientos.json"
+        format: "json"
+        fields:
+          - label: "Lanzamientos"
+            name: "lanzamientos"
+            widget: "list"
+            summary: "{{fields.titulo}}"
+            fields:
+              - { label: "Título", name: "titulo", widget: "string" }
+              - { label: "Enlace de YouTube", name: "youtube", widget: "string" }
+              - { label: "Descripción", name: "descripcion", widget: "text", required: false }
+              - { label: "Fecha y hora de publicación", name: "fecha", widget: "datetime", required: false }
+              - { label: "Mostrar en la web", name: "visible", widget: "boolean", default: true }

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#090909">
+  <meta name="description" content="La experiencia musical oficial de SMOKK. Música, videos y lanzamientos.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="material/imagenes/icono.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>SMOKK — Experiencia oficial</title>
+</head>
+<body>
+  <div class="intro" id="intro" aria-label="Introducción SMOKK">
+    <div class="intro-glow"></div>
+    <p class="intro-kicker">EXPERIENCIA MUSICAL</p>
+    <h1 class="intro-name">SMOKK</h1>
+    <p class="intro-caption">CATAMARCA · ARGENTINA</p>
+    <div class="intro-actions">
+      <button id="enterMusic" class="button button-red">Entrar con música</button>
+      <button id="enterSilent" class="button button-outline">Entrar sin música</button>
+    </div>
+  </div>
+
+  <div id="site" class="site" hidden>
+    <div class="video-backdrop" aria-hidden="true">
+      <video id="backgroundVideo" autoplay muted playsinline loop></video>
+      <div class="video-shade"></div>
+      <div class="red-haze"></div>
+    </div>
+
+    <header class="topbar">
+      <a class="wordmark" href="#inicio" aria-label="SMOKK inicio">SMOKK</a>
+      <nav aria-label="Navegación principal">
+        <a href="#musica">MÚSICA</a>
+        <a href="#historia">ARTISTA</a>
+        <a href="#lanzamiento">LANZAMIENTOS</a>
+      </nav>
+      <button id="soundToggle" class="sound-toggle" aria-label="Activar o pausar música">♫ <span>MÚSICA</span></button>
+    </header>
+
+    <main>
+      <section id="inicio" class="hero scene">
+        <div class="hero-copy">
+          <p class="eyebrow reveal">ARTISTA · PRODUCTOR · CATAMARCA</p>
+          <h1 class="hero-title reveal">SMOKK</h1>
+          <a class="text-link reveal" href="#musica">DESCUBRIR LA MÚSICA <span>↓</span></a>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <img class="hero-art-background" src="material/imagenes/fondo.jpg" alt="" onerror="this.style.display='none'">
+          <img id="artistPortrait" class="hero-art-person" src="material/imagenes/personaje.png" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="hero-bottom"><span>01 / UNIVERSO</span><span>DESLIZÁ PARA EXPLORAR</span></div>
+      </section>
+
+      <section class="platform-access section" aria-label="Accesos oficiales a las plataformas">
+        <div class="platform-access-heading">
+          <p class="eyebrow">CONECTÁ CON SMOKK</p>
+          <h2>ENCONTRALO EN <span>PLATAFORMAS</span></h2>
+          <p>Accedé directamente a su música y contenido.</p>
+        </div>
+        <div class="platform-buttons" id="platformButtons">
+          <a class="platform-button platform-youtube" href="https://youtube.com/@smokk_2009" target="_blank" rel="noopener noreferrer" aria-label="Abrir canal de SMOKK en YouTube">
+            <span class="platform-symbol" aria-hidden="true">▶</span><span>YouTube</span><span class="platform-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="platform-button platform-spotify" href="https://open.spotify.com/artist/6lcmuIRdh6cglv54iYnhH6" target="_blank" rel="noopener noreferrer" aria-label="Abrir perfil de SMOKK en Spotify">
+            <span class="platform-symbol platform-spotify-symbol" aria-hidden="true">≋</span><span>Spotify</span><span class="platform-arrow" aria-hidden="true">↗</span>
+          </a>
+          <a class="platform-button platform-instagram" href="https://instagram.com/smokk.la" target="_blank" rel="noopener noreferrer" aria-label="Abrir perfil de SMOKK en Instagram">
+            <span class="platform-symbol platform-instagram-symbol" aria-hidden="true">◎</span><span>Instagram</span><span class="platform-arrow" aria-hidden="true">↗</span>
+          </a>
+        </div>
+      </section>
+
+      <section class="cinema scene" id="universo">
+        <div class="cinema-content">
+          <p class="eyebrow">EL SONIDO, MÁS ALLÁ DEL BEAT</p>
+          <h2>UNA HISTORIA.<br><span>MUCHAS FRECUENCIAS.</span></h2>
+          <p class="cinema-note">Música, imágenes y movimiento en un mismo lugar.</p>
+        </div>
+        <div class="section-index">02 / VISIÓN</div>
+      </section>
+
+      <section id="musica" class="music-section section">
+        <div class="section-heading">
+          <p class="eyebrow">SELECCIÓN SONORA</p>
+          <h2>EN <span>ROTACIÓN</span></h2>
+          <p>Elegí un tema y dejá que siga sonando mientras recorrés la página.</p>
+        </div>
+        <div id="trackList" class="track-list">
+          <p class="empty-state">Agregá tus canciones en la carpeta <code>material/canciones/</code> y registralas en <code>material/canciones/lista.json</code>.</p>
+        </div>
+        <audio id="audioPlayer" preload="none"></audio>
+      </section>
+
+      <section id="historia" class="bio-section section">
+        <div class="bio-number">03</div>
+        <div class="bio-copy">
+          <p class="eyebrow">DE CATAMARCA AL SONIDO</p>
+          <h2>SMOKK</h2>
+          <p class="bio-lead">Leonardo Agustín Díaz es un artista argentino vinculado al rap, el freestyle y la producción musical.</p>
+          <p>Su recorrido en la música comenzó aproximadamente en 2009, en una etapa en la que el freestyle empezó a ganar presencia en Catamarca. Actualmente también desarrolla su faceta como productor, trabajando en beats y producciones musicales completas.</p>
+          <p class="credits-line">Cruces y colaboraciones vinculados a la escena urbana argentina: Bizarrap, Lit Killah, Kodigo y Rusherking.</p>
+        </div>
+      </section>
+
+      <section id="lanzamiento" class="release-section section">
+        <div class="section-heading">
+          <p class="eyebrow">VIDEO DESTACADO</p>
+          <h2>ÚLTIMO <span>ESTRENO</span></h2>
+          <p id="releaseDescription">Videos, estrenos y novedades de SMOKK.</p>
+        </div>
+        <div class="youtube-frame" id="featuredVideoWrap">
+          <iframe id="featuredVideo" src="https://www.youtube-nocookie.com/embed/VIDEO_ID_DE_EJEMPLO" title="Video de SMOKK" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        </div>
+        <p class="release-caption" id="releaseTitle">VIDEO DESTACADO · SMOKK</p>
+      </section>
+
+      <section class="always-video section">
+        <div>
+          <p class="eyebrow">EN EL CANAL</p>
+          <h2>SEGUÍ <span>EXPLORANDO</span></h2>
+          <p>Un espacio permanente para ver videos del artista.</p>
+        </div>
+        <a class="button button-red" id="channelButton" href="https://youtube.com/@smokk_2009" target="_blank" rel="noopener">VER CANAL DE YOUTUBE ↗</a>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <a class="wordmark" href="#inicio">SMOKK</a>
+      <div id="contactLine">Catamarca, Argentina</div>
+      <div class="footer-social">
+        <a href="https://instagram.com/smokk.la" target="_blank" rel="noopener">Instagram</a>
+        <a href="https://open.spotify.com/artist/6lcmuIRdh6cglv54iYnhH6" target="_blank" rel="noopener">Spotify</a>
+        <a href="https://youtube.com/@smokk_2009" target="_blank" rel="noopener">YouTube</a>
+      </div>
+      <small>© <span id="year"></span> SMOKK — Todos los derechos reservados.</small>
+    </footer>
+
+    <div class="bottom-bar" id="bottomBar">
+      <span class="bottom-mark">S</span>
+      <div class="bottom-copy"><strong>SMOKK</strong><small id="bottomStatus">Experiencia musical</small></div>
+      <button id="installButton" class="install-button" hidden>INSTALAR</button>
+      <a id="mobileSocial" href="https://instagram.com/smokk.la" target="_blank" rel="noopener">SEGUIR ↗</a>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

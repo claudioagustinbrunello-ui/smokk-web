@@ -1,0 +1,1 @@
+Copiá tus archivos de audio a esta carpeta. Luego editá lista.json y agregá un elemento por canción. Ejemplo: {"canciones":[{"archivo":"tema-uno.mp3","titulo":"Tema uno","detalle":"Single"}]}. Los nombres de archivo deben coincidir exactamente.

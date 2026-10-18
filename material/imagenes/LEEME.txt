@@ -1,0 +1,4 @@
+Esta sección usa una sola fotografía dividida en dos capas:
+- personaje.png: el cantante recortado, exportado como PNG con transparencia.
+- fondo.jpg: el fondo original de esa misma fotografía.
+No hacen falta más imágenes divididas. Los otros fondos visuales serán los videos de material/videos/.

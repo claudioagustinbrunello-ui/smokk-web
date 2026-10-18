@@ -1,0 +1,1 @@
+Colocá aquí hasta cuatro videos de fondo, con estos nombres exactos: fondo1.mp4, fondo2.mp4, fondo3.mp4, fondo4.mp4. Se reproducen en silencio y se alternan aleatoriamente. Usá videos comprimidos para móvil.

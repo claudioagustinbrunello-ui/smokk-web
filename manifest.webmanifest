@@ -1,0 +1,18 @@
+{
+  "name": "SMOKK — Experiencia oficial",
+  "short_name": "SMOKK",
+  "description": "Música, videos y lanzamientos de SMOKK",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080809",
+  "theme_color": "#090909",
+  "icons": [
+    {
+      "src": "material/imagenes/icono.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
