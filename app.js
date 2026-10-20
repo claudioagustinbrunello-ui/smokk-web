@@ -3,108 +3,155 @@ const intro = $("#intro");
 const site = $("#site");
 const audio = $("#audioPlayer");
 const video = $("#backgroundVideo");
-const trackList = $("#trackList");
 const installButton = $("#installButton");
 let installPrompt = null;
 let tracks = [];
 let currentTrack = -1;
+let managedVideos = [];
+let legacyVideos = [];
+let videoPlaylist = [];
 let videoIndex = -1;
-let shuffleVideos = [];
+let videoAttempts = 0;
 let musicEnabled = false;
+let tracksPromise = null;
+let backgroundVideosReady = false;
 
-function shuffledVideoOrder() {
-  const order = [1,2,3,4].filter(n => n !== videoIndex);
-  for (let i = order.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [order[i], order[j]] = [order[j], order[i]];
-  }
-  shuffleVideos = order;
+function normalizeMediaPath(value, folder) {
+  return mediaUrl(value, folder);
 }
-function nextVideo() {
-  if (!shuffleVideos.length) shuffledVideoOrder();
-  videoIndex = shuffleVideos.pop() ?? (Math.floor(Math.random()*4)+1);
-  video.src = `material/videos/fondo${videoIndex}.mp4`;
+async function loadBackgroundVideos() {
+  if (backgroundVideosReady) return;
+  backgroundVideosReady = true;
+  try {
+    const response = await fetch("content/videos.json", { cache: "no-store" });
+    if (response.ok) {
+      const data = await response.json();
+      managedVideos = (Array.isArray(data.videos) ? data.videos : [])
+        .filter(item => item && item.archivo)
+        .map((item, index) => ({ ...item, _orden: Number(item.orden) || index + 1 }))
+        .sort((a, b) => a._orden - b._orden);
+      if (!managedVideos.length && data.usarVideosExistentes !== false) {
+        legacyVideos = [1, 2, 3, 4].map(n => `material/videos/fondo${n}.mp4`);
+      }
+    } else {
+      legacyVideos = [1, 2, 3, 4].map(n => `material/videos/fondo${n}.mp4`);
+    }
+  } catch (_) {
+    legacyVideos = [1, 2, 3, 4].map(n => `material/videos/fondo${n}.mp4`);
+  }
+  videoPlaylist = managedVideos.length
+    ? managedVideos.map(item => normalizeMediaPath(item.archivo, "material/videos/"))
+    : legacyVideos;
+}
+async function startBackgroundVideo() {
+  await loadBackgroundVideos();
+  videoIndex = -1;
+  videoAttempts = 0;
+  if (!videoPlaylist.length) {
+    video.removeAttribute("src");
+    video.load();
+    return;
+  }
+  playNextBackgroundVideo();
+}
+function playNextBackgroundVideo() {
+  if (!videoPlaylist.length) return;
+  if (videoAttempts >= videoPlaylist.length) {
+    video.pause();
+    video.removeAttribute("src");
+    video.load();
+    return;
+  }
+  videoIndex = (videoIndex + 1) % videoPlaylist.length;
+  videoAttempts++;
+  video.src = videoPlaylist[videoIndex];
   video.load();
   const p = video.play();
   if (p && p.catch) p.catch(() => {});
 }
-video.addEventListener("ended", nextVideo);
+video.addEventListener("ended", () => {
+  videoAttempts = 0;
+  playNextBackgroundVideo();
+});
 video.addEventListener("error", () => {
-  // A missing video should not break the page; retry a different available file.
-  if (videoIndex >= 0) {
-    const next = (videoIndex % 4) + 1;
-    if (next !== videoIndex) {
-      videoIndex = next;
-      video.src = `material/videos/fondo${videoIndex}.mp4`;
-      video.load();
-      video.play().catch(() => {});
-    }
-  }
+  // Skip missing/invalid files without getting stuck in an endless error loop.
+  playNextBackgroundVideo();
 });
 
-async function loadTracks() {
-  try {
-    const response = await fetch("material/canciones/lista.json");
-    if (!response.ok) throw new Error("No hay lista de canciones");
-    const data = await response.json();
-    tracks = Array.isArray(data.canciones) ? data.canciones : [];
-  } catch (_) {
-    tracks = [];
-  }
-  renderTracks();
+function mediaUrl(value, fallbackFolder = "material/subidas/") {
+  if (!value) return "";
+  const raw = String(value).trim();
+  if (/^(https?:)?\/\//i.test(raw) || raw.startsWith("data:")) return raw;
+  if (raw.startsWith("/")) return raw;
+  if (raw.startsWith("material/") || raw.startsWith("./material/")) return raw;
+  return `${fallbackFolder}${raw}`;
 }
-function renderTracks() {
-  if (!tracks.length) {
-    trackList.innerHTML = '<p class="empty-state">Todavía no hay canciones cargadas. Agregá los archivos en <code>material/canciones/</code> y sus datos en <code>material/canciones/lista.json</code>.</p>';
-    return;
-  }
-  trackList.innerHTML = "";
-  tracks.forEach((track, index) => {
-    const row = document.createElement("div");
-    row.className = "track" + (index === currentTrack ? " active" : "");
-    const play = document.createElement("button");
-    play.className = "track-play";
-    play.setAttribute("aria-label", `Reproducir ${track.titulo || "canción"}`);
-    play.textContent = index === currentTrack && !audio.paused ? "Ⅱ" : "▶";
-    play.addEventListener("click", () => playTrack(index));
-    const info = document.createElement("div");
-    const title = document.createElement("div");
-    title.className = "track-title";
-    title.textContent = track.titulo || track.archivo;
-    const meta = document.createElement("div");
-    meta.className = "track-meta";
-    meta.textContent = track.detalle || "SMOKK";
-    info.append(title, meta);
-    const tag = document.createElement("span");
-    tag.className = "track-tag";
-    tag.textContent = index === currentTrack && !audio.paused ? "REPRODUCIENDO" : "ESCUCHAR";
-    row.append(play, info, tag);
-    trackList.append(row);
+function safeExternalLink(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  try {
+    const url = new URL(raw, window.location.href);
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch (_) { return ""; }
+}
+function setNowPlaying(track) {
+  const title = track?.titulo || track?.archivo || "SMOKK";
+  const artist = track?.artista || "SMOKK";
+  const label = `${title} — ${artist}`;
+  $("#trackStatusTitle").textContent = title;
+  $("#trackStatusArtist").textContent = artist;
+  $("#nowPlayingText").textContent = label;
+  $("#nowPlayingTextClone").textContent = label;
+  $("#nowPlayingTicker").hidden = !musicEnabled || audio.paused;
+  $("#bottomStatus").textContent = audio.paused ? "Música en pausa" : label;
+}
+function loadTracks() {
+  if (tracksPromise) return tracksPromise;
+  tracksPromise = (async () => {
+    try {
+      const response = await fetch("content/canciones.json", { cache: "no-store" });
+      if (!response.ok) throw new Error("No hay lista de canciones");
+      const data = await response.json();
+      tracks = (Array.isArray(data.canciones) ? data.canciones : []).filter(t => t && t.archivo).slice(0, 3);
+    } catch (_) {
+      tracks = [];
+    }
+    if (!tracks.length) {
+      $("#trackStatusTitle").textContent = "Todavía no hay canciones cargadas";
+      $("#trackStatusArtist").textContent = "SMOKK";
+    }
+    return tracks;
+  })();
+  return tracksPromise;
+}
+function playTrack(index) {
+  if (!tracks.length) return;
+  currentTrack = ((index % tracks.length) + tracks.length) % tracks.length;
+  const track = tracks[currentTrack];
+  const file = mediaUrl(track.archivo, "material/canciones/");
+  audio.src = file;
+  setNowPlaying(track);
+  const promise = audio.play();
+  if (promise && promise.catch) promise.catch(() => {
+    $("#trackStatusTitle").textContent = "No se pudo iniciar el audio";
+    $("#trackStatusArtist").textContent = "Revisá el archivo de la canción";
+    $("#nowPlayingTicker").hidden = true;
   });
 }
-async function playTrack(index) {
-  if (!tracks[index]) return;
-  if (currentTrack === index && !audio.paused) {
-    audio.pause();
-  } else {
-    currentTrack = index;
-    audio.src = `material/canciones/${tracks[index].archivo}`;
-    try { await audio.play(); musicEnabled = true; } catch (_) {}
-  }
-  renderTracks();
-  $("#bottomStatus").textContent = audio.paused ? "Música en pausa" : (tracks[currentTrack]?.titulo || "Reproduciendo");
-  $("#soundToggle").innerHTML = audio.paused ? "♫ <span>MÚSICA</span>" : "Ⅱ <span>PAUSAR</span>";
+function playNextTrack() {
+  if (musicEnabled && tracks.length) playTrack((currentTrack + 1) % tracks.length);
 }
-audio.addEventListener("ended", () => {
-  if (tracks.length) playTrack((currentTrack + 1) % tracks.length);
-});
+audio.addEventListener("ended", playNextTrack);
 audio.addEventListener("play", () => {
-  $("#bottomStatus").textContent = tracks[currentTrack]?.titulo || "Reproduciendo";
-  $("#soundToggle").innerHTML = "Ⅱ <span>PAUSAR</span>";
+  setNowPlaying(tracks[currentTrack] || { titulo: "SMOKK", artista: "SMOKK" });
+  $("#nowPlayingTicker").hidden = !musicEnabled;
 });
 audio.addEventListener("pause", () => {
-  $("#soundToggle").innerHTML = "♫ <span>MÚSICA</span>";
-  renderTracks();
+  $("#nowPlayingTicker").hidden = true;
+});
+audio.addEventListener("error", () => {
+  if (musicEnabled && tracks.length > 1) playNextTrack();
+  else $("#nowPlayingTicker").hidden = true;
 });
 
 async function enter(withMusic) {
@@ -112,31 +159,26 @@ async function enter(withMusic) {
   intro.classList.add("leaving");
   intro.style.transition = "opacity .55s ease";
   intro.style.opacity = "0";
-  window.setTimeout(() => {
+  // Begin audio directly from the entry interaction when the playlist is ready.
+  if (withMusic && tracks.length) playTrack(0);
+  window.setTimeout(async () => {
     intro.hidden = true;
     site.hidden = false;
     document.body.classList.remove("locked");
-    nextVideo();
-    loadTracks();
-    if (withMusic) {
-      loadTracks().then(() => {
-        if (tracks.length) playTrack(Math.floor(Math.random() * tracks.length));
-      });
+    startBackgroundVideo();
+    if (withMusic && !tracks.length) {
+      await loadTracks();
+      if (tracks.length) playTrack(0);
+      else {
+        $("#trackStatusTitle").textContent = "Todavía no hay canciones cargadas";
+        $("#trackStatusArtist").textContent = "Agregalas desde el panel de administración";
+      }
     }
+    $("#nowPlayingTicker").hidden = !withMusic || audio.paused;
   }, 560);
 }
 $("#enterMusic").addEventListener("click", () => enter(true));
 $("#enterSilent").addEventListener("click", () => enter(false));
-$("#soundToggle").addEventListener("click", async () => {
-  if (!tracks.length) await loadTracks();
-  if (!tracks.length) {
-    $("#bottomStatus").textContent = "Agregá canciones a la carpeta";
-    return;
-  }
-  if (!audio.paused) audio.pause();
-  else if (currentTrack >= 0) audio.play().catch(() => {});
-  else playTrack(Math.floor(Math.random() * tracks.length));
-});
 
 function getYoutubeId(value) {
   if (!value) return "";
@@ -145,13 +187,102 @@ function getYoutubeId(value) {
     if (url.hostname.includes("youtu.be")) return url.pathname.slice(1).split("/")[0];
     if (url.searchParams.get("v")) return url.searchParams.get("v");
     const parts = url.pathname.split("/");
-    const embedIndex = parts.findIndex(p => ["embed","shorts","live"].includes(p));
+    const embedIndex = parts.findIndex(p => ["embed", "shorts", "live"].includes(p));
     return embedIndex >= 0 ? parts[embedIndex + 1] : "";
   } catch (_) { return /^[\w-]{11}$/.test(value) ? value : ""; }
 }
+function makePlatformLink(label, href, className) {
+  const valid = safeExternalLink(href);
+  if (!valid) return null;
+  const a = document.createElement("a");
+  a.className = `platform-button ${className} collab-platform-button`;
+  a.href = valid;
+  a.target = "_blank";
+  a.rel = "noopener noreferrer";
+  a.textContent = label;
+  return a;
+}
+async function loadGallery() {
+  const section = $("#galeria");
+  const container = $("#galleryItems");
+  try {
+    const response = await fetch("content/galeria.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("No gallery content");
+    const data = await response.json();
+    const items = Array.isArray(data.galeria) ? data.galeria.filter(item => item && item.imagen) : [];
+    if (!items.length) return;
+    container.replaceChildren();
+    items.forEach(item => {
+      const card = document.createElement("figure");
+      card.className = "gallery-card";
+      const img = document.createElement("img");
+      img.src = mediaUrl(item.imagen);
+      img.alt = item.titulo || "Imagen de SMOKK";
+      img.loading = "lazy";
+      card.append(img);
+      if (item.titulo) {
+        const caption = document.createElement("figcaption");
+        caption.textContent = item.titulo;
+        card.append(caption);
+      }
+      container.append(card);
+    });
+  } catch (_) { /* Keep the CMS guidance placeholder visible. */ }
+}
+async function loadCollaborations() {
+  const container = $("#collaborationItems");
+  try {
+    const response = await fetch("content/colaboraciones.json", { cache: "no-store" });
+    if (!response.ok) throw new Error("No collaborations content");
+    const data = await response.json();
+    const items = Array.isArray(data.colaboraciones) ? data.colaboraciones.filter(item => item && item.titulo) : [];
+    if (!items.length) return;
+    container.replaceChildren();
+    items.forEach(item => {
+      const card = document.createElement("article");
+      card.className = "collab-card";
+      const title = document.createElement("h3");
+      title.textContent = item.titulo;
+      card.append(title);
+      if (item.video) {
+        const videoEl = document.createElement("video");
+        videoEl.className = "collab-media";
+        videoEl.src = mediaUrl(item.video);
+        videoEl.muted = true;
+        videoEl.autoplay = true;
+        videoEl.loop = true;
+        videoEl.playsInline = true;
+        videoEl.controls = false;
+        videoEl.preload = "metadata";
+        card.append(videoEl);
+      } else if (item.imagen) {
+        const img = document.createElement("img");
+        img.className = "collab-media";
+        img.src = mediaUrl(item.imagen);
+        img.alt = item.titulo;
+        img.loading = "lazy";
+        card.append(img);
+      }
+      if (item.descripcion) {
+        const description = document.createElement("p");
+        description.className = "collab-description";
+        description.textContent = item.descripcion;
+        card.append(description);
+      }
+      const links = document.createElement("div");
+      links.className = "collab-links";
+      const youtube = makePlatformLink("▶ YouTube", item.youtube, "platform-youtube");
+      const spotify = makePlatformLink("Spotify", item.spotify, "platform-spotify");
+      if (youtube) links.append(youtube);
+      if (spotify) links.append(spotify);
+      if (links.children.length) card.append(links);
+      container.append(card);
+    });
+  } catch (_) { /* Keep the CMS guidance placeholder visible. */ }
+}
 async function loadContent() {
   try {
-    const response = await fetch("content/site.json");
+    const response = await fetch("content/site.json", { cache: "no-store" });
     if (response.ok) {
       const config = await response.json();
       if (config.nombre) document.title = `${config.nombre} — Experiencia oficial`;
@@ -169,24 +300,28 @@ async function loadContent() {
     }
   } catch (_) {}
   try {
-    const response = await fetch("content/lanzamientos.json");
-    if (!response.ok) return;
-    const data = await response.json();
-    const now = Date.now();
-    const visible = (data.lanzamientos || [])
-      .filter(item => item.visible !== false && (!item.fecha || new Date(item.fecha).getTime() <= now))
-      .sort((a,b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
-    const latest = visible[0];
-    if (latest) {
-      $("#releaseTitle").textContent = latest.titulo || "VIDEO DESTACADO · SMOKK";
-      $("#releaseDescription").textContent = latest.descripcion || "Mirá el último lanzamiento.";
-      const id = getYoutubeId(latest.youtube);
-      if (id) $("#featuredVideo").src = `https://www.youtube-nocookie.com/embed/${id}`;
-      else if (latest.youtube) $("#featuredVideo").src = `https://www.youtube-nocookie.com/embed/${latest.youtube}`;
+    const response = await fetch("content/lanzamientos.json", { cache: "no-store" });
+    if (response.ok) {
+      const data = await response.json();
+      const now = Date.now();
+      const visible = (data.lanzamientos || [])
+        .filter(item => item.visible !== false && (!item.fecha || new Date(item.fecha).getTime() <= now))
+        .sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0));
+      const latest = visible[0];
+      if (latest) {
+        $("#releaseTitle").textContent = latest.titulo || "VIDEO DESTACADO · SMOKK";
+        $("#releaseDescription").textContent = latest.descripcion || "Mirá el último lanzamiento.";
+        const id = getYoutubeId(latest.youtube);
+        if (id) $("#featuredVideo").src = `https://www.youtube-nocookie.com/embed/${id}`;
+        else if (latest.youtube) $("#featuredVideo").src = `https://www.youtube-nocookie.com/embed/${latest.youtube}`;
+      }
     }
   } catch (_) {}
+  await Promise.all([loadGallery(), loadCollaborations()]);
 }
 loadContent();
+// Load the playlist before the visitor chooses whether to start music.
+loadTracks();
 $("#year").textContent = new Date().getFullYear();
 
 window.addEventListener("beforeinstallprompt", event => {
@@ -208,6 +343,34 @@ window.addEventListener("appinstalled", () => {
   installButton.hidden = true;
   $("#bottomStatus").textContent = "Aplicación instalada";
 });
+// Animaciones de entrada al desplazarse: se aplican a la mayoría de los bloques,
+// con algunas secciones deliberadamente estáticas para dar ritmo visual.
+function setupScrollReveals() {
+  const targets = document.querySelectorAll(
+    "#site main > section:not(.hero):not(.platform-access), .section-heading, .platform-access-heading, .platform-buttons, .now-playing-card, .bio-copy > *, .gallery-card, .collab-card, .youtube-frame, .always-video > *"
+  );
+  targets.forEach((element, index) => {
+    if (element.closest("#intro") || element.classList.contains("scroll-reveal")) return;
+    element.classList.add("scroll-reveal");
+    if (index % 4 === 1) element.classList.add("scroll-reveal-left");
+    else if (index % 4 === 3) element.classList.add("scroll-reveal-scale");
+  });
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !("IntersectionObserver" in window)) {
+    document.querySelectorAll(".scroll-reveal").forEach(el => el.classList.add("is-visible"));
+    return;
+  }
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -35px 0px" });
+  document.querySelectorAll(".scroll-reveal").forEach(el => observer.observe(el));
+}
+setupScrollReveals();
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 }
