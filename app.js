@@ -124,6 +124,22 @@ function loadTracks() {
   })();
   return tracksPromise;
 }
+// Cargar la lista antes de que el visitante toque "Entrar con música".
+// Así, el inicio del audio puede ocurrir dentro del gesto del usuario y
+// no después de la animación de entrada, cuando el navegador podría bloquearlo.
+const musicEntryButton = $("#enterMusic");
+const musicEntryOriginalLabel = musicEntryButton ? musicEntryButton.textContent : "";
+if (musicEntryButton) {
+  musicEntryButton.disabled = true;
+  musicEntryButton.textContent = "PREPARANDO MÚSICA…";
+}
+loadTracks().finally(() => {
+  if (musicEntryButton) {
+    musicEntryButton.disabled = false;
+    musicEntryButton.textContent = musicEntryOriginalLabel;
+  }
+});
+
 function playTrack(index) {
   if (!tracks.length) return;
   currentTrack = ((index % tracks.length) + tracks.length) % tracks.length;
@@ -150,8 +166,24 @@ audio.addEventListener("pause", () => {
   $("#nowPlayingTicker").hidden = true;
 });
 audio.addEventListener("error", () => {
-  if (musicEnabled && tracks.length > 1) playNextTrack();
-  else $("#nowPlayingTicker").hidden = true;
+  if (musicEnabled && tracks.length > 1) {
+    playNextTrack();
+    return;
+  }
+  $("#nowPlayingTicker").hidden = true;
+  // Distinguish a missing/unreachable file from an unsupported or invalid audio file.
+  const code = audio.error ? audio.error.code : 0;
+  if (musicEnabled && tracks.length) {
+    const detail = code === 4
+      ? "Formato no compatible o ruta incorrecta"
+      : code === 3
+        ? "El archivo de audio no se pudo decodificar"
+        : code === 2
+          ? "No se pudo descargar el archivo; revisá la ruta"
+          : "Revisá la ruta y el formato del archivo";
+    $("#trackStatusTitle").textContent = "No se pudo reproducir la canción";
+    $("#trackStatusArtist").textContent = detail;
+  }
 });
 
 async function enter(withMusic) {
