@@ -1,3 +1,9 @@
 {
-  "canciones": []
+  "canciones": [
+    {
+      "artista": "SMOKK",
+      "titulo": "Smokk - Forte",
+      "archivo": "material/canciones/smokk-forte.mp3"
+    }
+  ]
 }
