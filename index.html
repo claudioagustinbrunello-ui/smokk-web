@@ -35,9 +35,9 @@
       <nav aria-label="Navegación principal">
         <a href="#musica">MÚSICA</a>
         <a href="#historia">ARTISTA</a>
-        <a href="#lanzamiento">LANZAMIENTOS</a>
+        <a href="#colaboraciones">COLABS</a>
+        <a href="#lanzamiento">VIDEOS</a>
       </nav>
-      <button id="soundToggle" class="sound-toggle" aria-label="Activar o pausar música">♫ <span>MÚSICA</span></button>
     </header>
 
     <main>
@@ -85,13 +85,14 @@
       <section id="musica" class="music-section section">
         <div class="section-heading">
           <p class="eyebrow">SELECCIÓN SONORA</p>
-          <h2>EN <span>ROTACIÓN</span></h2>
-          <p>Elegí un tema y dejá que siga sonando mientras recorrés la página.</p>
+          <h2>SONANDO <span>AHORA</span></h2>
+          <p>Si elegís entrar con música, los temas se reproducen automáticamente. La selección se administra desde el panel, sin controles para cambiar de canción.</p>
         </div>
-        <div id="trackList" class="track-list">
-          <p class="empty-state">Agregá tus canciones en la carpeta <code>material/canciones/</code> y registralas en <code>material/canciones/lista.json</code>.</p>
+        <div class="now-playing-card" aria-live="polite">
+          <span class="now-playing-dot"></span>
+          <div><p class="eyebrow">REPRODUCCIÓN ACTUAL</p><strong id="trackStatusTitle">Elegí “Entrar con música” al comenzar</strong><p id="trackStatusArtist">SMOKK</p></div>
         </div>
-        <audio id="audioPlayer" preload="none"></audio>
+        <audio id="audioPlayer" preload="auto"></audio>
       </section>
 
       <section id="historia" class="bio-section section">
@@ -100,8 +101,31 @@
           <p class="eyebrow">DE CATAMARCA AL SONIDO</p>
           <h2>SMOKK</h2>
           <p class="bio-lead">Leonardo Agustín Díaz es un artista argentino vinculado al rap, el freestyle y la producción musical.</p>
-          <p>Su recorrido en la música comenzó aproximadamente en 2009, en una etapa en la que el freestyle empezó a ganar presencia en Catamarca. Actualmente también desarrolla su faceta como productor, trabajando en beats y producciones musicales completas.</p>
-          <p class="credits-line">Cruces y colaboraciones vinculados a la escena urbana argentina: Bizarrap, Lit Killah, Kodigo y Rusherking.</p>
+          <p>Su recorrido en la música comenzó aproximadamente en 2009, en una etapa en la que el freestyle empezó a ganar presencia en Catamarca. Actualmente desarrolla su faceta como productor, trabajando en beats y producciones musicales completas, y también como compositor de letras y canciones.</p>
+          <p>Entre sus trabajos de composición se encuentra una canción realizada junto a Damián Córdoba y otro artista.</p>
+          <p class="credits-line">En su recorrido también aparecen trabajos y colaboraciones vinculados con Bizarrap, Lit Killah, Kodigo, Rusherking, Valentín Vargas, KLABE y Tiago PZK.</p>
+        </div>
+      </section>
+
+      <section id="galeria" class="gallery-section section">
+        <div class="section-heading">
+          <p class="eyebrow">IMÁGENES Y MOMENTOS</p>
+          <h2>OTROS <span>PLANOS</span></h2>
+          <p>Imágenes seleccionadas del universo de SMOKK.</p>
+        </div>
+        <div id="galleryItems" class="gallery-track" aria-label="Galería de imágenes">
+          <p class="empty-state">Las imágenes se podrán agregar desde el panel de administración.</p>
+        </div>
+      </section>
+
+      <section id="colaboraciones" class="collabs-section section">
+        <div class="section-heading">
+          <p class="eyebrow">ENCUENTROS MUSICALES</p>
+          <h2>ALGUNAS <span>COLABS</span></h2>
+          <p>Colaboraciones seleccionadas. Cada publicación puede incluir imagen o video y enlaces disponibles.</p>
+        </div>
+        <div id="collaborationItems" class="collab-grid">
+          <p class="empty-state">Las colaboraciones aparecerán aquí cuando se agreguen desde el panel de administración.</p>
         </div>
       </section>
 
@@ -137,6 +161,12 @@
       </div>
       <small>© <span id="year"></span> SMOKK — Todos los derechos reservados.</small>
     </footer>
+
+    <div class="now-playing-ticker" id="nowPlayingTicker" hidden aria-live="polite" aria-label="Tema reproduciéndose">
+      <span class="ticker-label">SONANDO</span>
+      <div class="ticker-window"><div class="ticker-track"><span id="nowPlayingText">SMOKK</span><span id="nowPlayingTextClone" aria-hidden="true">SMOKK</span></div></div>
+      <span class="ticker-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    </div>
 
     <div class="bottom-bar" id="bottomBar">
       <span class="bottom-mark">S</span>
