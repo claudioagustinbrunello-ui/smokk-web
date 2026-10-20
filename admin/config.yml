@@ -2,13 +2,10 @@ backend:
   name: git-gateway
   repo: claudioagustinbrunello-ui/smokk-web
   branch: main
-  # Configurá OAuth para Decap CMS/GitHub antes de usar el panel en producción.
 
 media_folder: "material/subidas"
 public_folder: "material/subidas"
-
 locale: "es"
-
 publish_mode: editorial_workflow
 
 collections:
@@ -27,6 +24,109 @@ collections:
           - { label: "Teléfono o contacto", name: "telefono", widget: "string", required: false }
           - { label: "Video permanente de YouTube (URL)", name: "videoPermanente", widget: "string", required: false }
 
+  - name: "canciones"
+    label: "Música de fondo"
+    files:
+      - name: "lista"
+        label: "Temas de reproducción (hasta 3)"
+        file: "content/canciones.json"
+        format: "json"
+        media_folder: "material/canciones"
+        public_folder: "material/canciones"
+        fields:
+          - label: "Canciones (máximo 3; el orden de esta lista define la reproducción)"
+            name: "canciones"
+            widget: "list"
+            max: 3
+            required: false
+            summary: "{{fields.titulo}} — {{fields.artista}}"
+            fields:
+              - { label: "Título que se mostrará", name: "titulo", widget: "string" }
+              - { label: "Artista", name: "artista", widget: "string", default: "SMOKK" }
+              - label: "Archivo de audio"
+                name: "archivo"
+                widget: "file"
+                media_library:
+                  config:
+                    max_file_size: 52428800
+
+  - name: "videos_fondo"
+    label: "Videos de fondo"
+    files:
+      - name: "lista"
+        label: "Secuencia de videos de fondo"
+        file: "content/videos.json"
+        format: "json"
+        media_folder: "material/videos"
+        public_folder: "material/videos"
+        fields:
+          - label: "Usar los videos estáticos actuales si la lista queda vacía"
+            name: "usarVideosExistentes"
+            widget: "boolean"
+            default: true
+            required: false
+            hint: "Si está activado y no cargás videos nuevos, la página intentará usar material/videos/fondo1.mp4 a fondo4.mp4. Desactivalo para dejar el fondo sin video."
+          - label: "Videos (puede quedar vacío)"
+            name: "videos"
+            widget: "list"
+            required: false
+            summary: "Orden {{fields.orden}} — {{fields.titulo}}"
+            fields:
+              - { label: "Nombre interno (opcional)", name: "titulo", widget: "string", required: false }
+              - { label: "Orden de reproducción", name: "orden", widget: "number", value_type: "int", min: 1, default: 1 }
+              - label: "Archivo de video (máximo 25 MB)"
+                name: "archivo"
+                widget: "file"
+                media_library:
+                  config:
+                    max_file_size: 26214400
+                hint: "Subí MP4 de hasta 25 MB. Los videos se reproducen en el orden indicado y luego vuelven al primero."
+
+  - name: "galeria"
+    label: "Galería de imágenes"
+    files:
+      - name: "lista"
+        label: "Imágenes entre secciones"
+        file: "content/galeria.json"
+        format: "json"
+        media_folder: "material/subidas/galeria"
+        public_folder: "material/subidas/galeria"
+        fields:
+          - label: "Imágenes"
+            name: "galeria"
+            widget: "list"
+            required: false
+            summary: "{{fields.titulo}}"
+            fields:
+              - { label: "Título o pie de imagen", name: "titulo", widget: "string", required: false }
+              - { label: "Imagen", name: "imagen", widget: "image" }
+
+  - name: "colaboraciones"
+    label: "Colaboraciones"
+    files:
+      - name: "lista"
+        label: "Publicaciones de colaboraciones"
+        file: "content/colaboraciones.json"
+        format: "json"
+        media_folder: "material/subidas/colaboraciones"
+        public_folder: "material/subidas/colaboraciones"
+        fields:
+          - label: "Colaboraciones"
+            name: "colaboraciones"
+            widget: "list"
+            required: false
+            summary: "{{fields.titulo}}"
+            fields:
+              - { label: "Título de la colaboración", name: "titulo", widget: "string" }
+              - { label: "Imagen (opcional)", name: "imagen", widget: "image", required: false }
+              - label: "Video corto (opcional; si existe, se muestra en lugar de la imagen)"
+                name: "video"
+                widget: "file"
+                required: false
+              - { label: "Descripción (opcional)", name: "descripcion", widget: "text", required: false }
+              - { label: "Enlace de YouTube (opcional)", name: "youtube", widget: "string", required: false }
+              - { label: "Enlace de Spotify (opcional)", name: "spotify", widget: "string", required: false }
+
   - name: "lanzamientos"
     label: "Lanzamientos"
     files:
@@ -38,6 +138,7 @@ collections:
           - label: "Lanzamientos"
             name: "lanzamientos"
             widget: "list"
+            required: false
             summary: "{{fields.titulo}}"
             fields:
               - { label: "Título", name: "titulo", widget: "string" }
