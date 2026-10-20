@@ -1,4 +1,10 @@
 {
-  "usarVideosExistentes": true,
-  "videos": []
+  "usarVideosExistentes": false,
+  "videos": [
+    {
+      "orden": 1,
+      "titulo": "Video Forte fondo",
+      "archivo": "material/videos/smokk-forte-video-oficial-.mp4"
+    }
+  ]
 }
