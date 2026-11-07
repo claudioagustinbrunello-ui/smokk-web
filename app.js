@@ -1,5 +1,5 @@
 // ============================
-// SMOKK — app.js
+// SMOKK — app.js (versión corregida)
 // ============================
 
 const RUTAS = {
@@ -57,11 +57,13 @@ async function cargarContenido() {
   }
 
   const lanzamientos = await cargarJSON(RUTAS.lanzamientos);
-  if (lanzamientos) renderizarLanzamientos(lanzamientos);
+  if (lanzamientos && Array.isArray(lanzamientos.items)) {
+    renderizarLanzamientos(lanzamientos.items);
+  }
 
   const lista = await cargarJSON(RUTAS.canciones);
-  if (lista && Array.isArray(lista)) {
-    canciones = lista;
+  if (lista && Array.isArray(lista.items)) {
+    canciones = lista.items;
     actualizarTituloCancion();
   }
 }
@@ -86,7 +88,6 @@ function renderizarVideo(video) {
     cont.innerHTML = "<p style='color:#999'>Próximamente.</p>";
     return;
   }
-  // Acepta URL de YouTube normal o embed
   let embed = video.url;
   if (embed.includes("watch?v=")) {
     embed = embed.replace("watch?v=", "embed/");
