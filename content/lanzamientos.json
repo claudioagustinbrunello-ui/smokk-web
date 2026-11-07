@@ -1,3 +1,10 @@
 {
-  "lanzamientos": []
+  "items": [
+    {
+      "titulo": "Próximamente",
+      "descripcion": "Las colaboraciones aparecerán aquí cuando se agreguen desde el panel.",
+      "enlace": "",
+      "fecha": ""
+    }
+  ]
 }
